@@ -1,9 +1,14 @@
 <html>
     <head>
-        <title>WTF!</title>
+        <title>Charts!</title>
+        <style> 
+
+            .line { fill: rgb(243, 122, 108); }
+            
+        </style>
     </head>
     <body>
-        <h1>It Works!</h1>        
+        <h1>Charts!</h1>        
 
         <!-- D3 Charts -->
         <div id="d3PieChartPlaceHolder"></div>
@@ -17,13 +22,22 @@
 
         <!--External imports begin --> 
         <script src="https://code.highcharts.com/highcharts.js"></script>
-        <script src="https://d3js.org/d3.v4.js"></script>
+        
+        <!--This is for D3 Bar Chart-->
+        <script src="https://d3js.org/d3.v3.min.js"></script>
+        
+        <!--This is for D3 Pie/Line Chart-->
+        <script src="https://d3js.org/d3.v4.min.js"></script>
         <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+        
+        
         <!-- External imports end-->
 
         <!-- Internal imports begin -->
         <script src="highcharts_hw1.js"></script>
         <script src="d3charts_hw1.js"></script>
+        <script src="d3_barchart.js"></script>
+        <script src="d3_linechart.js"></script>
         <script type="text/javascript" src="./require.js"></script>
 
         <!-- Internal imports begin -->

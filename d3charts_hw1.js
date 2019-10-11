@@ -14,7 +14,7 @@ function readTextFile(file, callback) {
 
 
 readTextFile("ucsd_admissions.json", function(text){
-    var data = JSON.parse(text);
+    var data_json = JSON.parse(text);
     var years = [];
     var curr_fulltime_men_app = [];
     var curr_fulltime_women_app = [];
@@ -23,15 +23,15 @@ readTextFile("ucsd_admissions.json", function(text){
     var curr_fulltime_men_enrolled = [];
     var curr_fulltime_women_enrolled = [];
 
-    for(var year in data){
+    for(var year in data_json){
 
-        years.push(data[year]["year"]);
-        curr_fulltime_men_app.push(parseInt(data[year]["fulltime_men_applied"],10));
-        curr_fulltime_women_app.push(parseInt(data[year]["fulltime_women_applied"], 10));
-        curr_fulltime_men_admitted.push(parseInt(data[year]["fulltime_men_admitted"],10));
-        curr_fulltime_women_admitted.push(parseInt(data[year]["fulltime_women_admitted"],10));
-        curr_fulltime_men_enrolled.push(parseInt(data[year]["fulltime_men_enrolled"],10));
-        curr_fulltime_women_enrolled.push(parseInt(data[year]["fulltime_women_enrolled"],10));
+        years.push(data_json[year]["year"]);
+        curr_fulltime_men_app.push(parseInt(data_json[year]["fulltime_men_applied"],10));
+        curr_fulltime_women_app.push(parseInt(data_json[year]["fulltime_women_applied"], 10));
+        curr_fulltime_men_admitted.push(parseInt(data_json[year]["fulltime_men_admitted"],10));
+        curr_fulltime_women_admitted.push(parseInt(data_json[year]["fulltime_women_admitted"],10));
+        curr_fulltime_men_enrolled.push(parseInt(data_json[year]["fulltime_men_enrolled"],10));
+        curr_fulltime_women_enrolled.push(parseInt(data_json[year]["fulltime_women_enrolled"],10));
 
     }
 
@@ -58,7 +58,7 @@ readTextFile("ucsd_admissions.json", function(text){
     //TODO NEED TITLE
 
     // Format data
-    var data = {"men_applied": curr_fulltime_men_app[indx_2018], 
+    var data_json = {"men_applied": curr_fulltime_men_app[indx_2018], 
     "women_applied": curr_fulltime_women_app[indx_2018], 
     "men_enrolled":curr_fulltime_men_enrolled[indx_2018], 
     "women_enrolled":curr_fulltime_women_enrolled[indx_2018], 
@@ -67,13 +67,13 @@ readTextFile("ucsd_admissions.json", function(text){
 
     // set color scale
     var color = d3.scaleOrdinal()
-    .domain(data)
+    .domain(data_json)
     .range(d3.schemeSet2);
 
     // Compute the position of each group on the pie:
     var pie = d3.pie()
     .value(function(d) {return d.value; })
-    var data_ready = pie(d3.entries(data))
+    var data_ready = pie(d3.entries(data_json))
 
     // shape helper to build arcs:
     var arcGenerator = d3.arc()
@@ -92,47 +92,113 @@ readTextFile("ucsd_admissions.json", function(text){
     .style("stroke-width", "2px")
     .style("opacity", 0.7)
 
+    svg
+    .selectAll('mySlices')
+    .data(data_ready)
+    .enter()
+    .append('text')
+    .text(function(d){ return "" + d.data.key})
+    .attr("transform", function(d) { return "translate(" + arcGenerator.centroid(d) + ")";  })
+    .style("text-anchor", "middle")
+    .style("font-size", 12)
+
+    svg.append("text")
+        .attr("x", (width / 12))             
+        .attr("y", -200)
+        .attr("text-anchor", "middle")  
+        .style("font-size", "16px") 
+        .style("text-decoration", "underline")  
+        .text("UCSD Application Records (2018)");
+
+
     /*---- END PIE CHART ------*/
 
     /*---- BAR CHART -----*/
-    var svg2 = d3.select("#d3BarChartPlaceHolder"),
-            margin = 200,
-            width = svg2.attr("width") - margin,
-            height = svg2.attr("height") - margin
+    var margin = {top: 40, right: 20, bottom: 70, left: 75},
+    width = 1000 - margin.left - margin.right,
+    height = 600 - margin.top - margin.bottom;
 
+    var x = d3.scale.ordinal().rangeRoundBands([0, width], .05);
 
-    var xScale = d3.scaleBand().range([0, width]).padding(0.4),
-                yScale = d3.scaleLinear().range([height, 0]);
+    var y = d3.scale.linear().range([height, 0]);
 
-    var g = svg2.append("g")
-                .attr("transform", "translate(" + 100 + "," + 100 + ")");
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom")
+        
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .ticks(10);
 
-    d3.csv("ucsd_admissions_csv.csv", function(error, data1) {
-        if (error) {
-            throw error;
-        }
+    var svg2 = d3.select("#d3BarChartPlaceHolder").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+        .attr("transform", 
+            "translate(" + margin.left + "," + margin.top + ")");
+    d3.csv("ucsd_admissions_bar.csv", function(error, data) {
 
-        xScale.domain(data1.map(function(d) { return d.year; }));
-        yScale.domain([0, d3.max(data, function(d) { return d.fulltime_men_enrolled; })]);
-
-        g.append("g")
+        data.forEach(function(d) {
+            d.date = parseInt(d.year.replace(',', ''))
+            d.value = parseInt(d.fulltime_men_applied.replace(',', ''));
+        });
+        
+        
+    x.domain(data.map(function(d) { return d.date; }));
+    y.domain([0, d3.max(data, function(d) { return d.value; })]);
+    
+    svg2.append("g")
+        .attr("class", "x axis")
         .attr("transform", "translate(0," + height + ")")
-        .call(d3.axisBottom(xScale));
+        .call(xAxis)
+    .selectAll("text")
+        .style("text-anchor", "end")
+        .attr("dx", "-.8em")
+        .attr("dy", "-.55em")
+        .attr("transform", "rotate(-90)" )
+    svg2.append("text")             
+                .attr("transform",
+                    "translate(" + (width/2) + " ," + 
+                            (height + margin.top + 20) + ")")
+            .style("text-anchor", "middle")
+                .text("Year");
 
-        g.append("g")
-        .call(d3.axisLeft(yScale).tickFormat(function(d){
-            return "$" + d;
-        }).ticks(10));
+    svg2.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", 5)
+        .attr("text-anchor", "middle")  
+        .style("font-size", "16px") 
+        .style("text-decoration", "underline")  
+        .text("UCSD Fulltime Men Applied (2005-2018)");
 
+    svg2.append("g")
+        .attr("class", "y axis")
+        
+        .call(yAxis)
+    .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".9em")
+        .style("text-anchor", "end")
+        
+    svg2.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 0 - margin.left)
+            .attr("x",0 - (height / 2))
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .text("Fulltime Men Applied (thousands)");        
 
-        g.selectAll(".bar")
-        .data(data1)
+    svg2.selectAll("bar")
+        .data(data)
         .enter().append("rect")
-        .attr("class", "bar")
-        .attr("x", function(d) { return xScale(d.year); })
-        .attr("y", function(d) { return yScale(d.fulltime_men_enrolled); })
-        .attr("width", xScale.bandwidth())
-        .attr("height", function(d) { return height - yScale(d.fulltime_men_enrolled)}); 
+        .style("fill", "steelblue")
+        .attr("x", function(d) { return x(d.date); })
+        .attr("width", x.rangeBand())
+        .attr("y", function(d) { return y(d.value); })
+        .attr("height", function(d) { return height - y(d.value); });
+        
     });
 
 
@@ -140,79 +206,80 @@ readTextFile("ucsd_admissions.json", function(text){
 
     /*---- BEGIN LINE CHART ----*/
     // set the dimensions and margins of the graph
-    var margin = {top: 20, right: 20, bottom: 50, left: 70},
-    width = 960 - margin.left - margin.right,
+    var margin = {top: 10, right: 60, bottom: 50, left: 60},
+    width = 1000 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
-    // parse the date / time
-    var parseTime = d3.timeParse("%d-%b-%y");
-
-    // set the ranges
-    var x = d3.scaleTime().range([0, width]);
-    var y = d3.scaleLinear().range([height, 0]);
-
-    // define the line
-    var valueline = d3.line()
-    .x(function(d) { return x(d.date); })
-    .y(function(d) { return y(d.close); });
-
-    // append the svg obgect to the body of the page
-    // appends a 'group' element to 'svg'
-    // moves the 'group' element to the top left margin
-    var svg = d3.select("#d3LineChartPlaceHolder").append("svg")
+    // append the svg object to the body of the page
+    var svg = d3.select("#d3LineChartPlaceHolder")
+    .append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
     .attr("transform",
         "translate(" + margin.left + "," + margin.top + ")");
 
-    // Get the data
-    d3.csv("ucsd_admissions_csv.csv", function(error, data) {
-        if (error) throw error;
+    //Read the data
+    d3.csv("ucsd_admissions_bar.csv",
 
-        // format the data
-        data.forEach(function(d) {
-        d.date = parseTime(d.date);
-        d.close = +d.close;
-        });
+    // When reading the csv, I must format variables:
+    function(d){
+    return { date : parseInt(d.year.replace(',', '')), value : parseInt(d.fulltime_men_applied.replace(',', ''))}
+    },
 
-        // Scale the range of the data
-        x.domain(d3.extent(data, function(d) { return d.date; }));
-        y.domain([0, d3.max(data, function(d) { return d.close; })]);
 
-        // Add the valueline path.
-        svg.append("path")
-        .data([data])
-        .attr("class", "line")
-        .attr("d", valueline);
-
-        // Add the x Axis
-        svg.append("g")
-        .attr("transform", "translate(0," + height + ")")
-        .call(d3.axisBottom(x));
-
-        // text label for the x axis
-        svg.append("text")             
+    // Now I can use this dataset:
+    function(data) {
+    // Add X axis --> it is a date format
+    var x = d3.scaleLinear()
+    .domain([2005,2018])
+    .range([ 0, 500]);
+    console.log(x);
+    svg.append("g")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(x));
+    svg.append("text")             
         .attr("transform",
-                "translate(" + (width/2) + " ," + 
-                            (height + margin.top + 20) + ")")
-        .style("text-anchor", "middle")
-        .text("Date");
+            "translate(" + (width/4) + " ," + 
+                (height + margin.top + 20) + ")")
+    .style("text-anchor", "middle")
+        .text("Year");
 
-        // Add the y Axis
-        svg.append("g")
-        .call(d3.axisLeft(y));
+    // Add Y axis
+    var y = d3.scaleLinear()
+    .domain([0, d3.max(data, function(d) { return +d.value; })])
+    .range([ height, 0 ]);
+    svg.append("g")
+    .call(d3.axisLeft(y));
+    svg.append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 0 - margin.left)
+    .attr("x",0 - (height / 2))
+    .attr("dy", "1em")
+    .style("text-anchor", "middle")
+    .text("Fulltime Men Applied (thousands)");      
 
-        // text label for the y axis
-        svg.append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("y", 0 - margin.left)
-        .attr("x",0 - (height / 2))
-        .attr("dy", "1em")
-        .style("text-anchor", "middle")
-        .text("Value");      
+    // Add the line
+    svg.append("path")
+    .datum(data)
+    .attr("fill", "none")
+    .attr("stroke", "steelblue")
+    .attr("stroke-width", 1.5)
+    .attr("d", d3.line()
+        .x(function(d) { return x(d.date) })
+        .y(function(d) { return y(d.value) })
+        )
+        
+    svg.append("text")
+    .attr("x", (400 / 2))             
+    .attr("y", 10 )
+    .attr("text-anchor", "middle")  
+    .style("font-size", "16px") 
+    .style("text-decoration", "underline")  
+    .text("UCSD Fulltime Men Applied (2005-2018)");
+    
 
-    });
+    })
 
 
 });
