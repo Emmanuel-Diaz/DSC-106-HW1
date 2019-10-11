@@ -1,3 +1,12 @@
+/* SOURCES USED
+Reading JSON file - https://stackoverflow.com/questions/19706046/how-to-read-an-external-local-json-file-in-javascript
+
+Pie Chart - https://www.highcharts.com/demo/pie-basic
+Bar Chart - https://www.highcharts.com/demo/bar-basic
+Line Chart - https://www.highcharts.com/demo/line-basic
+
+*/
+
 'use strict';
 
 function readTextFile(file, callback) {
@@ -216,5 +225,3 @@ var pieChart = document.getElementById("pieChartPlaceHolder");
         }]
 });
 });
-
-// Data structure to hold all the configurations together

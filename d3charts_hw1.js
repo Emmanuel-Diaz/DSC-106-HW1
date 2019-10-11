@@ -1,3 +1,12 @@
+/* SOURCES USED
+
+Reading JSON File - https://stackoverflow.com/questions/19706046/how-to-read-an-external-local-json-file-in-javascript
+Bar Chart - http://bl.ocks.org/d3noob/8952219
+Line Chart -https://bl.ocks.org/d3noob/402dd382a51a4f6eea487f9a35566de0
+Pie Chart - https://www.d3-graph-gallery.com/graph/pie_annotation.html
+
+*/
+
 'use strict';
 
 function readTextFile(file, callback) {
@@ -205,12 +214,12 @@ readTextFile("ucsd_admissions.json", function(text){
     /*----- END BAR CHART ---*/
 
     /*---- BEGIN LINE CHART ----*/
-    // set the dimensions and margins of the graph
+    
     var margin = {top: 10, right: 60, bottom: 50, left: 60},
     width = 1000 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
-    // append the svg object to the body of the page
+    
     var svg = d3.select("#d3LineChartPlaceHolder")
     .append("svg")
     .attr("width", width + margin.left + margin.right)
@@ -219,18 +228,17 @@ readTextFile("ucsd_admissions.json", function(text){
     .attr("transform",
         "translate(" + margin.left + "," + margin.top + ")");
 
-    //Read the data
+    
     d3.csv("ucsd_admissions_bar.csv",
 
-    // When reading the csv, I must format variables:
+    
     function(d){
     return { date : parseInt(d.year.replace(',', '')), value : parseInt(d.fulltime_men_applied.replace(',', ''))}
     },
 
-
-    // Now I can use this dataset:
+  
     function(data) {
-    // Add X axis --> it is a date format
+    
     var x = d3.scaleLinear()
     .domain([2005,2018])
     .range([ 0, 500]);
@@ -245,7 +253,6 @@ readTextFile("ucsd_admissions.json", function(text){
     .style("text-anchor", "middle")
         .text("Year");
 
-    // Add Y axis
     var y = d3.scaleLinear()
     .domain([0, d3.max(data, function(d) { return +d.value; })])
     .range([ height, 0 ]);
@@ -259,7 +266,6 @@ readTextFile("ucsd_admissions.json", function(text){
     .style("text-anchor", "middle")
     .text("Fulltime Men Applied (thousands)");      
 
-    // Add the line
     svg.append("path")
     .datum(data)
     .attr("fill", "none")
